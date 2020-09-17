@@ -63,23 +63,23 @@ void main() {
         }
     }
 
-    // printf("\n-------------- Matrix 1 --------------\n");    
+    printf("\n-------------- Matrix 1 --------------\n");    
 
-    // for (i = 0; i < N; i++) {
-    //    for (j = 0; j < N; j++) {
-    //        printf("%d ", matrix1[i][j]);
-    //    }
-    //    printf("\n");
-    // }
+    for (i = 0; i < N; i++) {
+       for (j = 0; j < N; j++) {
+           printf("%d ", matrix1[i][j]);
+       }
+       printf("\n");
+    }
 
-    // printf("\n-------------- Matrix 2 --------------\n");
+    printf("\n-------------- Matrix 2 --------------\n");
 
-    // for (i = 0; i < N; i++) {
-    //    for (j = 0; j < N; j++) {
-    //        printf("%d ", matrix2[i][j]);
-    //    }
-    //    printf("\n");
-    // }
+    for (i = 0; i < N; i++) {
+       for (j = 0; j < N; j++) {
+           printf("%d ", matrix2[i][j]);
+       }
+       printf("\n");
+    }
 
     shmid = shmget(key, sizeof(int) * N * N, 0600 | IPC_CREAT);
     buffer = shmat(shmid, 0 , 0 );
@@ -102,7 +102,7 @@ void main() {
         for(i = 1; i < P; i++) {
             wait(NULL);
         }    
-        //print_matrix(buffer);
+        print_matrix(buffer);
     	shmdt(buffer);
 	    shmctl(shmid, IPC_RMID, 0);
     }
