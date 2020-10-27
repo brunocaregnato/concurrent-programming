@@ -29,35 +29,35 @@ typedef struct cabecalho {
  * utiliza char sem sinal para ir de 0 a 256 bytes
  */
 typedef struct pixel {
-   unsigned char blue; //
+   unsigned char blue;
    unsigned char green;
    unsigned char red;
 } RGB;
 
-RGB *allocate_image(FILE *file, CABECALHO *header) {
+RGB *allocate_image(FILE *file, int altura, int largura) {
    RGB *image = (RGB*) malloc(sizeof(RGB));
 
-   image = (RGB*) malloc(sizeof(RGB) * (header->altura * header->largura));
+   image = (RGB*) malloc(sizeof(RGB) * (altura * largura));
 
-   int offset = 0, ali = (header->largura * 3) % 4;
+   int offset = 0, ali = (largura * 3) % 4;
    char aux;
 
-   if (ali != 0)
-      ali = 4 - ali;
+   if (ali != 0) ali = 4 - ali;
 
-   for (int i = 0; i < header->altura; i++) {
-      fread(image + offset, sizeof(RGB), header->largura, file);
-      offset += header->largura;
+   for (int i = 0; i < altura; i++) {
+      fread(image + offset, sizeof(RGB), largura, file);
+      offset += largura;
 
       if (ali) fread(&aux, sizeof(unsigned char), ali, file);
    }
 
-    return image;
+   return image;
 }
 
-RGB *copy_image(RGB *image, CABECALHO *header) {
-   RGB *imageAux = (RGB*) malloc(sizeof(RGB) * (header->largura * header->altura));
-   memcpy(imageAux, image, sizeof(RGB) * (header->largura * header->altura));
+RGB *copy_image(RGB *image, int image_size) {
+   RGB *imageAux = (RGB*) malloc(sizeof(RGB) * image_size);
+   memcpy(imageAux, image, sizeof(RGB) * image_size);
+
    return imageAux;
 }
 
@@ -68,8 +68,7 @@ void create_image(FILE *file, RGB *image, CABECALHO header) {
    int offset = 0, ali = (header.largura * 3) % 4;
    char aux;
 
-   if (ali != 0)
-      ali = 4 - ali;
+   if (ali != 0) ali = 4 - ali;
 
    for (int i = 0; i < header.altura; i++) {
       fwrite(image + offset, sizeof(RGB), header.largura, file);
@@ -79,11 +78,8 @@ void create_image(FILE *file, RGB *image, CABECALHO header) {
    }
 }
 
-RGB *setOffset(RGB *image, CABECALHO header, int row, int col) {
-   if (row < 0 || row > header.altura || col < 0 || col > header.largura)
-      return NULL;
-
-   return image + ((row * header.largura) + col);
+RGB *set_offset(RGB *image, int largura, int row, int col) {
+   return image + ((row * largura) + col); //desloca para o pixel da imagem
 }
 
 void quick_sort(unsigned char *array, int first, int last) {
@@ -134,20 +130,19 @@ int main(int argc, char **argv) {
 
    fread(&headerIn, sizeof(CABECALHO), 1, fileIn);
 
-   imageIn = allocate_image(fileIn, &headerIn);
+   imageIn = allocate_image(fileIn, headerIn.altura, headerIn.largura);
 
-   headerOut = headerIn;
-   imageOut = copy_image(imageIn, &headerIn);
+   headerOut = headerIn; //copia cabecalho de entrada pro de saida
+   imageOut = copy_image(imageIn, headerIn.largura * headerIn.altura);
 
    int maskSize = atoi(argv[3]);
-   int size = maskSize * maskSize;
-   unsigned char color_blue[size], color_green[size], color_red[size];
+   unsigned char color_blue[maskSize * maskSize], color_green[maskSize * maskSize], color_red[maskSize * maskSize];
 
    for (int row = 0;row < headerIn.altura; row++) {
       for (int col = 0;col < headerIn.largura; col++) {
          if (row < (maskSize/2) || row >= headerIn.altura - (maskSize/2)
             || col < (maskSize/2) || col >= headerIn.largura - (maskSize/2)) { 
-               RGB *pixel = setOffset(imageOut, headerOut, row, col);
+               RGB *pixel = set_offset(imageOut, headerOut.largura, row, col);               
                pixel->red = 0;
                pixel->green = 0;
                pixel->blue = 0;
@@ -157,7 +152,7 @@ int main(int argc, char **argv) {
          int point = 0;
          for (int rowAux =- (maskSize/2);rowAux <= (maskSize/2); rowAux++) {
             for (int colAux =- (maskSize/2);colAux <= (maskSize/2); colAux++) {
-               RGB *pixel = setOffset(imageIn, headerIn, row + rowAux, col + colAux);
+               RGB *pixel = set_offset(imageIn, headerIn.largura, row + rowAux, col + colAux);
                color_blue[point] = pixel->blue;
                color_green[point] = pixel->green;
                color_red[point] = pixel->red;
@@ -165,14 +160,13 @@ int main(int argc, char **argv) {
             }
          }
 
-         RGB *pixel = setOffset(imageOut, headerOut, row, col);
-
+         RGB *pixel = set_offset(imageOut, headerOut.largura, row, col);
          quick_sort(color_blue, 0, point - 1);
-         pixel->blue = color_blue[size/2];
+         pixel->blue = color_blue[point/2];
          quick_sort(color_green, 0, point - 1);
-         pixel->green = color_green[size/2];
+         pixel->green = color_green[point/2];
          quick_sort(color_red, 0, point - 1);
-         pixel->red = color_red[size/2];
+         pixel->red = color_red[point/2];
       }
    }   
 
