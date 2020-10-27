@@ -29,9 +29,9 @@ typedef struct cabecalho {
  * utiliza char sem sinal para ir de 0 a 256 bytes
  */
 typedef struct pixel {
-    unsigned char blue; //
-    unsigned char green;
-    unsigned char red;
+   unsigned char blue; //
+   unsigned char green;
+   unsigned char red;
 } RGB;
 
 RGB *allocate_image(FILE *file, CABECALHO *header) {
@@ -43,22 +43,22 @@ RGB *allocate_image(FILE *file, CABECALHO *header) {
    char aux;
 
    if (ali != 0)
-       ali = 4 - ali;
+      ali = 4 - ali;
 
    for (int i = 0; i < header->altura; i++) {
-       fread(image + offset, sizeof(RGB), header->largura, file);
-       offset += header->largura;
+      fread(image + offset, sizeof(RGB), header->largura, file);
+      offset += header->largura;
 
-       if (ali) fread(&aux, sizeof(unsigned char), ali, file);
+      if (ali) fread(&aux, sizeof(unsigned char), ali, file);
    }
 
     return image;
 }
 
 RGB *copy_image(RGB *image, CABECALHO *header) {
-   RGB *colors = (RGB*) malloc(sizeof(RGB) * (header->largura * header->altura));
-   memcpy(colors, image, sizeof(RGB) * (header->largura * header->altura));
-   return colors;
+   RGB *imageAux = (RGB*) malloc(sizeof(RGB) * (header->largura * header->altura));
+   memcpy(imageAux, image, sizeof(RGB) * (header->largura * header->altura));
+   return imageAux;
 }
 
 
@@ -69,13 +69,13 @@ void create_image(FILE *file, RGB *image, CABECALHO header) {
    char aux;
 
    if (ali != 0)
-       ali = 4 - ali;
+      ali = 4 - ali;
 
    for (int i = 0; i < header.altura; i++) {
-       fwrite(image + offset, sizeof(RGB), header.largura, file);
-       offset += header.largura;
+      fwrite(image + offset, sizeof(RGB), header.largura, file);
+      offset += header.largura;
        
-       if (ali) fwrite(&aux, sizeof(unsigned char), ali, file);
+      if (ali) fwrite(&aux, sizeof(unsigned char), ali, file);
    }
 }
 
@@ -146,17 +146,17 @@ int main(int argc, char **argv) {
    for (int row = 0;row < headerIn.altura; row++) {
       for (int col = 0;col < headerIn.largura; col++) {
          if (row < (maskSize/2) || row >= headerIn.altura - (maskSize/2)
-            || col < (maskSize/2) || col >= headerIn.largura - (maskSize/2)) {                   
+            || col < (maskSize/2) || col >= headerIn.largura - (maskSize/2)) { 
                RGB *pixel = setOffset(imageOut, headerOut, row, col);
                pixel->red = 0;
                pixel->green = 0;
                pixel->blue = 0;
                continue;
-          }
+         }
 
          int point = 0;
          for (int rowAux =- (maskSize/2);rowAux <= (maskSize/2); rowAux++) {
-            for (int colAux =- (maskSize/2);colAux <= (maskSize/2); colAux++) {               
+            for (int colAux =- (maskSize/2);colAux <= (maskSize/2); colAux++) {
                RGB *pixel = setOffset(imageIn, headerIn, row + rowAux, col + colAux);
                color_blue[point] = pixel->blue;
                color_green[point] = pixel->green;
