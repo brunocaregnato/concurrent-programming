@@ -1,0 +1,5 @@
+threads	tempomascara3x3	tempomascara 5x5	tempomascara7x7
+1		0,247			0,947			2,241
+2		0,137			0,539			1,270
+3		0,167			0,581			1,263
+4		0,155			0,557			1,337

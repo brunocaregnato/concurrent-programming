@@ -34,6 +34,20 @@ typedef struct pixel {
    unsigned char red;
 } RGB;
 
+/* parametros utilizados no processo de thread*/
+struct parametros{
+	int id;
+	int n;
+	int nthr;
+	CABECALHO headerIn;
+	CABECALHO headerOut;
+	RGB *imageIn;
+   RGB *imageOut;
+};
+typedef struct parametros PARAMETROS;
+
+/*--------------------------------------------------------------------*/
+
 RGB *allocate_image(FILE *file, int altura, int largura) {
    RGB *image = (RGB*) malloc(sizeof(RGB));
 
@@ -108,37 +122,20 @@ void quick_sort(unsigned char *array, int first, int last) {
    }
 }
 
-int main(int argc, char **argv) {
-   FILE *fileIn, *fileOut;
-   CABECALHO headerIn, headerOut;
-   RGB *imageIn, *imageOut;
-    
-   if (argc != 4) {
-       printf("%s <imagem_de_entrada> <imagem_de_saida> <tamanho_mascara> <numero_threads>\n", argv[0]);
-       exit(0);
-   }
+void * gera_img(void *args){
+   PARAMETROS *par = (PARAMETROS *)args;
+   int i, j;
+   int id = par->id;
+   int maskSize = par->n;
+   int nthr = par->nthr;
+   CABECALHO headerIn = par->headerIn;
+   CABECALHO headerOut = par->headerOut;
+   RGB *imageIn = par->imageIn;
+   RGB *imageOut = par->imageOut;
 
-   if ((fileIn = fopen(argv[1], "rb")) == NULL) {
-      printf("Nao foi possivel abrir o arquivo de entrada!\n");
-      exit(0);
-   }
-
-   if ((fileOut = fopen(argv[2], "wb")) == NULL) {
-      printf("Nao foi possivel abrir o arquivo de saida!\n");
-      exit(0);
-   }
-
-   fread(&headerIn, sizeof(CABECALHO), 1, fileIn);
-
-   imageIn = allocate_image(fileIn, headerIn.altura, headerIn.largura);
-
-   headerOut = headerIn; //copia cabecalho de entrada pro de saida
-   imageOut = copy_image(imageIn, headerIn.largura * headerIn.altura);
-
-   int maskSize = atoi(argv[3]);
    unsigned char color_blue[maskSize * maskSize], color_green[maskSize * maskSize], color_red[maskSize * maskSize];
 
-   for (int row = 0;row < headerIn.altura; row++) {
+    for (int row = id;row < headerIn.altura; row+=nthr) {
       for (int col = 0;col < headerIn.largura; col++) {
          if (row < (maskSize/2) || row >= headerIn.altura - (maskSize/2)
             || col < (maskSize/2) || col >= headerIn.largura - (maskSize/2)) { 
@@ -169,6 +166,58 @@ int main(int argc, char **argv) {
          pixel->red = color_red[point/2];
       }
    }   
+}
+
+int main(int argc, char **argv) {
+   FILE *fileIn, *fileOut;
+   CABECALHO headerIn, headerOut;
+   RGB *imageIn, *imageOut;
+   pthread_t *tid = NULL;
+	PARAMETROS *par = NULL;
+   int nthr, maskSize, i;
+    
+   if (argc != 5) {
+       printf("%s <imagem_de_entrada> <imagem_de_saida> <tamanho_mascara> <numero_threads>\n", argv[0]);
+       exit(0);
+   }
+
+   if ((fileIn = fopen(argv[1], "rb")) == NULL) {
+      printf("Nao foi possivel abrir o arquivo de entrada!\n");
+      exit(0);
+   }
+
+   if ((fileOut = fopen(argv[2], "wb")) == NULL) {
+      printf("Nao foi possivel abrir o arquivo de saida!\n");
+      exit(0);
+   }
+   
+   maskSize = atoi(argv[3]);
+   nthr = atoi(argv[4]);
+
+   tid = (pthread_t *)malloc(nthr * sizeof(pthread_t));
+	par = (PARAMETROS *)malloc(nthr * sizeof(PARAMETROS));
+
+   fread(&headerIn, sizeof(CABECALHO), 1, fileIn);
+
+   imageIn = allocate_image(fileIn, headerIn.altura, headerIn.largura);
+
+   headerOut = headerIn; //copia cabecalho de entrada pro de saida
+   imageOut = copy_image(imageIn, headerIn.largura * headerIn.altura);
+
+	for( i=0; i<nthr; i++ ){
+		par[i].id = i;
+		par[i].n = maskSize;
+		par[i].nthr = nthr;
+		par[i].headerIn = headerIn;
+		par[i].headerOut = headerOut;
+		par[i].imageIn = imageIn;
+      par[i].imageOut = imageOut;
+		pthread_create(&tid[i], NULL, gera_img, (void *) &par[i]); 
+	} 
+	
+	for ( i=0; i<nthr; i++ ){
+		pthread_join(tid[i], NULL);
+	}
 
    create_image(fileOut, imageOut, headerOut);
 
