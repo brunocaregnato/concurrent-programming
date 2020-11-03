@@ -34,8 +34,8 @@ typedef struct pixel {
    unsigned char red;
 } RGB;
 
-/* parametros utilizados no processo de thread*/
-struct parametros{
+/* parametros utilizados no processo de thread */
+typedef struct parametros {
 	int id;
 	int n;
 	int nthr;
@@ -43,8 +43,7 @@ struct parametros{
 	CABECALHO headerOut;
 	RGB *imageIn;
    RGB *imageOut;
-};
-typedef struct parametros PARAMETROS;
+} PARAMETROS;
 
 /*--------------------------------------------------------------------*/
 
@@ -75,6 +74,9 @@ RGB *copy_image(RGB *image, int image_size) {
    return imageAux;
 }
 
+RGB *set_offset(RGB *image, int largura, int row, int col) {
+   return image + ((row * largura) + col); //desloca para o pixel da imagem
+}
 
 void create_image(FILE *file, RGB *image, CABECALHO header) {    
    fwrite(&header, sizeof(CABECALHO), 1, file);
@@ -90,10 +92,6 @@ void create_image(FILE *file, RGB *image, CABECALHO header) {
        
       if (ali) fwrite(&aux, sizeof(unsigned char), ali, file);
    }
-}
-
-RGB *set_offset(RGB *image, int largura, int row, int col) {
-   return image + ((row * largura) + col); //desloca para o pixel da imagem
 }
 
 void quick_sort(unsigned char *array, int first, int last) {
@@ -122,34 +120,27 @@ void quick_sort(unsigned char *array, int first, int last) {
    }
 }
 
-void * gera_img(void *args){
-   PARAMETROS *par = (PARAMETROS *)args;
-   int i, j;
-   int id = par->id;
+void *generate_image(void *args) {   
+   PARAMETROS *par = (PARAMETROS *) args;
    int maskSize = par->n;
-   int nthr = par->nthr;
-   CABECALHO headerIn = par->headerIn;
-   CABECALHO headerOut = par->headerOut;
-   RGB *imageIn = par->imageIn;
-   RGB *imageOut = par->imageOut;
 
    unsigned char color_blue[maskSize * maskSize], color_green[maskSize * maskSize], color_red[maskSize * maskSize];
 
-    for (int row = id;row < headerIn.altura; row+=nthr) {
-      for (int col = 0;col < headerIn.largura; col++) {
-         if (row < (maskSize/2) || row >= headerIn.altura - (maskSize/2)
-            || col < (maskSize/2) || col >= headerIn.largura - (maskSize/2)) { 
-               RGB *pixel = set_offset(imageOut, headerOut.largura, row, col);               
-               pixel->red = 0;
-               pixel->green = 0;
-               pixel->blue = 0;
+    for (int row = par->id; row < par->headerIn.altura; row += par->nthr) {
+      for (int col = 0; col < par->headerIn.largura; col++) {
+         if (row < (maskSize/2) || row >= par->headerIn.altura - (maskSize/2)
+            || col < (maskSize/2) || col >= par->headerIn.largura - (maskSize/2)) { 
+               RGB *pixel = set_offset(par->imageOut, par->headerOut.largura, row, col);               
+               pixel->blue = par->imageOut->blue;
+               pixel->green = par->imageOut->green;
+               pixel->red = par->imageOut->red;
                continue;
          }
 
          int point = 0;
-         for (int rowAux =- (maskSize/2);rowAux <= (maskSize/2); rowAux++) {
-            for (int colAux =- (maskSize/2);colAux <= (maskSize/2); colAux++) {
-               RGB *pixel = set_offset(imageIn, headerIn.largura, row + rowAux, col + colAux);
+         for (int rowAux =- (maskSize/2); rowAux <= (maskSize/2); rowAux++) {
+            for (int colAux =- (maskSize/2); colAux <= (maskSize/2); colAux++) {
+               RGB *pixel = set_offset(par->imageIn, par->headerIn.largura, row + rowAux, col + colAux);
                color_blue[point] = pixel->blue;
                color_green[point] = pixel->green;
                color_red[point] = pixel->red;
@@ -157,7 +148,7 @@ void * gera_img(void *args){
             }
          }
 
-         RGB *pixel = set_offset(imageOut, headerOut.largura, row, col);
+         RGB *pixel = set_offset(par->imageOut, par->headerOut.largura, row, col);
          quick_sort(color_blue, 0, point - 1);
          pixel->blue = color_blue[point/2];
          quick_sort(color_green, 0, point - 1);
@@ -174,7 +165,7 @@ int main(int argc, char **argv) {
    RGB *imageIn, *imageOut;
    pthread_t *tid = NULL;
 	PARAMETROS *par = NULL;
-   int nthr, maskSize, i;
+   int nthr, maskSize;
     
    if (argc != 5) {
        printf("%s <imagem_de_entrada> <imagem_de_saida> <tamanho_mascara> <numero_threads>\n", argv[0]);
@@ -204,7 +195,8 @@ int main(int argc, char **argv) {
    headerOut = headerIn; //copia cabecalho de entrada pro de saida
    imageOut = copy_image(imageIn, headerIn.largura * headerIn.altura);
 
-	for( i=0; i<nthr; i++ ){
+   int i = 0;
+	for(; i < nthr; i++) {
 		par[i].id = i;
 		par[i].n = maskSize;
 		par[i].nthr = nthr;
@@ -212,10 +204,10 @@ int main(int argc, char **argv) {
 		par[i].headerOut = headerOut;
 		par[i].imageIn = imageIn;
       par[i].imageOut = imageOut;
-		pthread_create(&tid[i], NULL, gera_img, (void *) &par[i]); 
+		pthread_create(&tid[i], NULL, generate_image, (void *) &par[i]); 
 	} 
 	
-	for ( i=0; i<nthr; i++ ){
+	for (i = 0; i < nthr; i++) {
 		pthread_join(tid[i], NULL);
 	}
 
