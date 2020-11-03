@@ -1,5 +1,0 @@
-threads	| mask 3x3 time | mask 5x5 time | mask 7x7 time
-1	| 0,215s	| 0,757s	| 1,768s
-2	| 0,115s	| 0,410s	| 0,931s
-3	| 0,105s	| 0,360s	| 0,809s
-4	| 0,095s	| 0,302s        | 0,669s
