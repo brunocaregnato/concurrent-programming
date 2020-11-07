@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/bmp_median_filter_java/src/bmp_median_filter_java/Main.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="bmp_median_filter_java.Main"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="D:\Documentos\GitHub\concurrent-programming\bmp_median_filter_java\src\bmp_median_filter_java\borboleta.bmp D:\Documentos\GitHub\concurrent-programming\bmp_median_filter_java\src\bmp_median_filter_java\teste.bmp 11"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="bmp_median_filter_java"/>
+</launchConfiguration>
