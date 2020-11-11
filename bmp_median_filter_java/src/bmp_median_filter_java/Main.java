@@ -18,12 +18,13 @@ public class Main {
 		
 		BufferedImage imageIn = null;
 		
-		if (args.length != 3) {
+		if (args.length != 4) {
 			System.out.printf("%s <imagem_de_entrada> <imagem_de_saida> <tamanho_mascara> <numero_threads>", args[0]);
 			System.exit(0);
 		}
 		
 		int maskSize = Integer.parseInt(args[2]); 
+		int nthreads = Integer.parseInt(args[3]);
 		
 		File fileIn = new File(args[0]);
 		File fileOut = new File(args[1]);
@@ -34,15 +35,38 @@ public class Main {
 			e.printStackTrace();			
 		}
 		
-		BufferedImage imageOut = doMedianFilter(imageIn, maskSize, fileOut);
+		MedianFilter [] p = new MedianFilter[nthreads];
+
+		for(int i=0; i<nthreads; i++){
+			p[i] = new MedianFilter(i,nthreads,imageIn, maskSize, fileOut);
+			p[i].start();
+			
+		}	
+
+		for(int i=0; i<nthreads; i++){
+			try{				
+				p[i].join();
+			}
+			catch(InterruptedException e){
+				e.printStackTrace();
+			}
+			
+			try {
+				ImageIO.write(p[i].getMedianFilter(), "BMP", fileOut);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		/*BufferedImage imageOut = doMedianFilter(imageIn, maskSize, fileOut);
 			
 		try {
 			ImageIO.write(imageOut, "BMP", fileOut);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 	}
-	
+	/*
 	private static BufferedImage doMedianFilter(BufferedImage image, int maskSize, File file) {
 
 		BufferedImage imageOut = image;
@@ -81,5 +105,5 @@ public class Main {
 		
 		return imageOut;
 	}
-		
+		*/
 }
