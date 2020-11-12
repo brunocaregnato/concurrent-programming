@@ -9,22 +9,20 @@ public class MedianFilter extends Thread {
 	private int nthreads;
 	private BufferedImage image; 
 	private int maskSize;
-	private File file;
 	private BufferedImage imageOut;
 	
 	public static QuickSort quickSort = new QuickSort(); 
 
-	public MedianFilter(int tid, int nthreads, BufferedImage image, int maskSize, File file){
+	public MedianFilter(int tid, int nthreads, BufferedImage image, int maskSize){
 		this.tid = tid;
 		this.nthreads = nthreads;
 		this.image = image; 
 		this.maskSize = maskSize;
-		this.file = file;
 		this.imageOut = null;
 	}
 	
 	public BufferedImage getMedianFilter(){
-		return (this.imageOut);
+		return this.imageOut;
 	}
 	
 	public void run() {
