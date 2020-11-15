@@ -1,5 +1,3 @@
-package bmp_median_filter_java;
-
 public class QuickSort {
 	
 	 int partition(int arr[], int low, int high) { 

@@ -1,5 +1,3 @@
-package bmp_median_filter_java;
-
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;

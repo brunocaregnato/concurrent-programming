@@ -1,0 +1,3 @@
+[submodule "biconjugate-gradient-method-parallel"]
+	path = biconjugate-gradient-method-parallel
+	url = https://github.com/11808s8/biconjugate-gradient-method-parallel
