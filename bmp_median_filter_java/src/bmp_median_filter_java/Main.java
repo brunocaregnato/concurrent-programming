@@ -59,55 +59,7 @@ public class Main {
 			}
 		}
 		
-		/*BufferedImage imageOut = doMedianFilter(imageIn, maskSize, fileOut);
-			
-		try {
-			ImageIO.write(imageOut, "BMP", fileOut);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
+
 	}
 	
-	public static QuickSort quickSort = new QuickSort(); 
-	
-	/*
-	private static BufferedImage doMedianFilter(BufferedImage image, int maskSize, File file) {
-
-		BufferedImage imageOut = image;
-		
-		int color_blue[] = new int[maskSize * maskSize],
-			color_green[] = new int[maskSize * maskSize],
-			color_red[] = new int[maskSize * maskSize];
-				
-	    for (int row = 0; row < image.getHeight(); row++) {
-	      for (int col = 0; col < image.getWidth(); col++) {
-
-	         if (row < (maskSize/2) || row >= image.getHeight() - (maskSize/2)
-	            || col < (maskSize/2) || col >= image.getWidth() - (maskSize/2)) {
-	        	 Color c = new Color(image.getRGB(col, row));
-	        	 imageOut.setRGB(col, row, (c.getRed() << 16 | c.getGreen() << 8 | c.getBlue()));	        	 
-	             continue;
-	         }
-
-	         int point = 0;
-	         for (int rowAux =- (maskSize/2); rowAux <= (maskSize/2); rowAux++) {
-	            for (int colAux =- (maskSize/2); colAux <= (maskSize/2); colAux++) {
-	            	Color c = new Color(image.getRGB(col + colAux, row + rowAux));	               
-	            	color_red[point] = c.getRed();
-	            	color_green[point] = c.getGreen();
-	                color_blue[point] = c.getBlue();
-	                point++;
-	            }
-	         }
-
-	         quickSort.sort(color_red, 0, point - 1);
-	         quickSort.sort(color_green, 0, point - 1);
-	         quickSort.sort(color_blue, 0, point - 1);
-	         imageOut.setRGB(col, row, (color_red[point/2] << 16 | color_green[point/2] << 8 | color_blue[point/2]));
-	      }
-	   }	    
-		
-		return imageOut;
-	}
-		*/
 }
