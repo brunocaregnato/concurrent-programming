@@ -138,17 +138,16 @@ int main(int argc, char **argv) {
     imageOut = copy_image(imageIn, headerIn.largura * headerIn.altura);
 
     int maskSize = atoi(argv[3]);
-    int nthreads = atoi(argv[4]);
+    omp_set_num_threads(atoi(argv[4]));
 
-    omp_set_num_threads(nthreads);
-    #pragma omp parallel private (id, nthreads)
-    {
-        unsigned char color_blue[maskSize * maskSize], color_green[maskSize * maskSize], color_red[maskSize * maskSize];
-        id = omp_get_thread_num();
-        nthreads = omp_get_num_threads();
+    int row, col, point, rowAux, colAux;
+    unsigned char color_blue[maskSize * maskSize], color_green[maskSize * maskSize], color_red[maskSize * maskSize];
+    RGB *pixel;
 
-        for (int row = id;row < headerIn.altura; row += nthreads) {
-            for (int col = 0;col < headerIn.largura; col++) {
+    #pragma omp parallel private(row, col, point, rowAux, colAux, color_blue, color_green, color_red)
+    {   
+        for (row = omp_get_thread_num();row < headerIn.altura; row += omp_get_num_threads()) {
+            for (col = 0;col < headerIn.largura; col++) {
                 if (row < (maskSize/2) || row >= headerIn.altura - (maskSize/2)
                     || col < (maskSize/2) || col >= headerIn.largura - (maskSize/2)) { 
                     RGB *pixel = set_offset(imageOut, headerOut.largura, row, col);               
@@ -158,9 +157,9 @@ int main(int argc, char **argv) {
                     continue;
                 }
 
-                int point = 0;
-                for (int rowAux =- (maskSize/2);rowAux <= (maskSize/2); rowAux++) {
-                    for (int colAux =- (maskSize/2);colAux <= (maskSize/2); colAux++) {
+                point = 0;
+                for (rowAux =- (maskSize/2);rowAux <= (maskSize/2); rowAux++) {
+                    for (colAux =- (maskSize/2);colAux <= (maskSize/2); colAux++) {
                     RGB *pixel = set_offset(imageIn, headerIn.largura, row + rowAux, col + colAux);
                     color_blue[point] = pixel->blue;
                     color_green[point] = pixel->green;
