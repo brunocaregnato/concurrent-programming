@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
     FILE *fileIn, *fileOut;
     CABECALHO headerIn, headerOut;
     RGB *imageIn, *imageOut;
+    int id;
         
     if (argc != 5) {
         printf("%s <imagem_de_entrada> <imagem_de_saida> <tamanho_mascara> <numero_threads>\n", argv[0]);
@@ -140,11 +141,13 @@ int main(int argc, char **argv) {
     int nthreads = atoi(argv[4]);
 
     omp_set_num_threads(nthreads);
-    #pragma omp parallel
+    #pragma omp parallel private (id, nthreads)
     {
         unsigned char color_blue[maskSize * maskSize], color_green[maskSize * maskSize], color_red[maskSize * maskSize];
+        id = omp_get_thread_num();
+        nthreads = omp_get_num_threads();
 
-        for (int row = omp_get_thread_num();row < headerIn.altura; row += nthreads) {
+        for (int row = id;row < headerIn.altura; row += nthreads) {
             for (int col = 0;col < headerIn.largura; col++) {
                 if (row < (maskSize/2) || row >= headerIn.altura - (maskSize/2)
                     || col < (maskSize/2) || col >= headerIn.largura - (maskSize/2)) { 
